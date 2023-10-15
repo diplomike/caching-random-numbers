@@ -11,7 +11,7 @@ output:
 knitr::opts_chunk$set(cache = F, echo = T)
 ```
 
-This is an experiment to show how caching behaves in chunks when a random seed is used. Each trial is a function to generate 6 random numbers of mean 100 and standard deviation 15, with various results according to different settings. 
+This is an experiment to show how caching behaves in chunks during knitting when algorithms with random numbers are invovled. Each scenario is a function to generate 6 random numbers of mean 100 and standard deviation 15, with various results according to different settings. 
 
 Note because the caching option is set at each chunk level, the global setting no longer matters.
 

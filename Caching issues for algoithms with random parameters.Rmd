@@ -15,28 +15,28 @@ This is an experiment to show how caching behaves in chunks when a random seed i
 
 Note because the caching option is set at each chunk level, the global setting no longer matters.
 
-The first trial is just a computation without caching nor seed manipulation. It should produce different numbers every time it is knitted.
+The first scenario is just a computation without caching nor seed manipulation. It should produce different numbers every time it is knitted.
 
 Scenario 1 - Chunk option: cache=F
 ```{r not_cached, cache=F}
 rnorm(6,100,15)
 ```
 
-The second trial is the same computation but with caching instead. After the first attempt, subsequent runs should produce the same numbers because it just retrieves the data in the cache rather than rerunning the code.
+The second scenario is the same computation but with caching instead. After the first attempt, subsequent runs should produce the same numbers because they just retrieve the data in the cache rather than rerunning the code.
 
 Scenario 2 - Chunk option: cache=T
 ```{r cached_no_set_seed, cache=T}
 rnorm(6,100,15)
 ```
 
-The third trial is the same computation without caching. Surprisingly, despite not using cache the results are the same as the first run.
+The third scenario is the same computation without caching. Surprisingly, despite not using cache the results are the same as the first run.
 
 Scenario 3 - Chunk option: cache=F
 ```{r not_cached_no_set_seed, cache=F}
 rnorm(6,100,15)
 ```
 
-Further investigation shows this is because the cache in the scenario 2 also keeps the  seed, which is then used to generate this pseudo-random number set. Hence the newly generated set is still the same as before.
+Further investigation shows this is because the cache in the scenario 2 also keeps the seed, which is then used to generate this pseudo-random number set. Hence the newly generated set is still the same as before.
 
 ```{r random_seed, cache=F}
 .Random.seed[1:6]

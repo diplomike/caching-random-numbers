@@ -29,7 +29,7 @@ Scenario 2 - Chunk option: cache=T
 rnorm(6,100,15)
 ```
 
-The thrid trial is the same computation without caching. Surprisingly, despite not using cache the results are the same as the first run.
+The third trial is the same computation without caching. Surprisingly, despite not using cache the results are the same as the first run.
 
 Scenario 3 - Chunk option: cache=F
 ```{r not_cached_no_set_seed, cache=F}

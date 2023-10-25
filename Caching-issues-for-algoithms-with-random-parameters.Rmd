@@ -1,0 +1,104 @@
+---
+title: Caching issues with random algorithms and other demo in R
+author: Michael Lai
+output: 
+  pdf_document: 
+    number_sections: yes
+---
+
+This document demonstrates some functions that are quite useful in R programming. 
+
+The first is to use "comment = NA" in the knitr setup options to suppress the leading hatches on output lines:
+
+```{r before the setup, echo=FALSE}
+"This is the before the setup"
+```
+
+```{r setup}
+knitr::opts_chunk$set(echo = T, cache = FALSE, comment = NA)
+```
+
+```{r after the setup, echo=FALSE}
+"This is the after the setup"
+```
+
+The next demonstrates how to remove the "indexes of elements of the line", i.e. the numbers in front of each line of output, with the cat() function:
+
+```{r date}
+cat(c("Last updated:", date()))
+```
+
+The time the report is last knitted is shown without neither the leading hatch nor the index number.
+
+This next is an experiment to show how caching behaves in chunks during knitting when algorithms with random parameters (called "randomized algorithms" afterwards). Each scenario is a function to generate 6 random numbers of mean 100 and standard deviation 15, with various results according to different settings.
+
+Because the caching option is set at each chunk level, the global setting no longer matters. Also note after each run of a randomized algorithm a random seed is created or modified, which can be looked up by 
+
+.Random.seed. 
+
+Investigating its values throughout the process is crucial to understand why the caching behaves in the way it does. 
+
+__________________________________________________________________________________
+
+The first scenario is just a computation without caching nor seed setting. It should produce different numbers every time it is knitted. And the seed values printed afterwards should be different every time. The first set of seed values are only created after the rnorm function; trying to print the seed before the function will produce an error. 
+
+Scenario 1 - Chunk option: cache=F
+```{r not_cached, cache=F}
+data.frame(Random_No = rnorm(6,100,15))
+cat(c("Seeds:", .Random.seed[1:6]))
+```
+
+__________________________________________________________________________________
+The second scenario is the same computation but with caching instead. After the first run, subsequent runs should output the same numbers as well as the same seed values because they just retrieve the data in the cache rather than rerunning the algorithm.
+
+Scenario 2 - Chunk option: cache=T
+```{r cached_no_set_seed, cache=T}
+data.frame(Random_No = rnorm(6,100,15))
+cat(c("Seeds:", .Random.seed[1:6]))
+```
+
+__________________________________________________________________________________
+The third scenario is the same computation without caching. Surprisingly, despite not using cache the results are the same as the first run. The preceding seed values show this is because the seed kept by the cache in scenario 2 is fed into the algorithm, which by definition will generate the  same numbers. The succeeding seed values also show that once an old seed is retrieved, subsequent randomized algorithms will continue to produce the same seeds afterwards.
+
+Scenario 3 - Chunk option: cache=F
+```{r not_cached_no_set_seed, cache=F}
+cat(c("Seeds:", .Random.seed[1:6]))
+data.frame(Random_No = rnorm(6,100,15))
+cat(c("Seeds:", .Random.seed[1:6]))
+```
+
+__________________________________________________________________________________
+In order to generate a truly new random set of numbers, apart from setting the caching option to false, the seed also needs to be reset so as to clear the influence from the previous codes. Then the regenerated number set will be different each time the document is knitted.
+
+Scenario 4 - Chunk option: cache=F
+```{r not_cached_reset_seed, cache=F}
+set.seed(NULL)
+data.frame(Random_No = rnorm(6,100,15))
+cat(c("Seeds:", .Random.seed[1:6]))
+```
+
+__________________________________________________________________________________
+Finally, if the chunk is cached it does not matter whether the seed is reset. The seed and the number set will still be the same as the first run because the code is not executed.
+
+Scenario 5 - Chunk option: cache=T
+```{r cached_reset_seed, cache=T}
+set.seed(NULL)
+data.frame(Random_No = rnorm(6,100,15))
+cat(c("Seeds:", .Random.seed[1:6]))
+```
+
+Conclusion:
+
+Once any preceding codes that involve random algorithms have been cached, subsequent random algorithms need to reset the seed apart from changing the caching option in order to generate random results again. Otherwise they will continue to produce the same calculations as before, setting a chain of motion which disrupts the randomization process altogether.
+
+Other points to note:
+
+1. Rerunning of the code will happen if ANY one of these conditions are met:
+    a)  The global caching option is set to FALSE (which is the default setting), 
+      or is overridden by the chunk level option;
+    b)  Any part of the code chunk, including the header, has been modified;
+    c)  No existing cache is found in the corresponding folder.
+      
+2. The cache used in knitting is not the same as the one used in the preview of the markdown notebook (those results shown in snippets). They will not be the same if there is any randomness involved in the algorithm. If the exact output has to be ensured, a seed has to be set at the beginning of each chunk.
+
+3. The caches for knitting pdf or html files are also stored separately. In other words, knitting a pdf will not save any results for knitting another html file, and vice versa.
